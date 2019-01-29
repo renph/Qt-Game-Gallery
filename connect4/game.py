@@ -1,7 +1,7 @@
 from PyQt5 import QtGui
 from PyQt5.QtCore import Qt, QPoint
 from PyQt5.QtWidgets import QApplication, QMainWindow
-from PyQt5.QtGui import QPalette, QColor, QPainter, QPolygon, QPainterPath
+from PyQt5.QtGui import QPalette, QColor, QPainter
 
 
 class Connect4GameModel:
@@ -68,10 +68,13 @@ class Connect4GameController:
             self.view.update()
             if self.gameModel.isGameOver():
                 self.isNewGame = False
-                print('Game over')
+                winner = ['red','blue'][self.gameModel.lastMove[-1]]
+                print('Game over, {} wins'.format(winner))
 
     def newGame(self):
         self.isNewGame = True
+        self.gameModel = Connect4GameModel()
+        self.view.update()
 
 
 class Connect4View(QMainWindow):
@@ -85,6 +88,11 @@ class Connect4View(QMainWindow):
         p = QPalette(QColor(255, 250, 205, 255))
         self.setPalette(p)
         self.mousePos = -1
+
+        menubar = self.menuBar()
+        startMenu = menubar.addMenu('start')
+        startMenu.addAction('New Game', self.controller.newGame, 'ctrl+N')
+        startMenu.addAction('Quit', self.close, 'ctrl+Q')
 
     def mouseReleaseEvent(self, a0: QtGui.QMouseEvent):
         if a0.button() == Qt.LeftButton:
