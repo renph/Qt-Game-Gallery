@@ -9,24 +9,48 @@ class Connect4GameModel:
         # empty: -1, red: 0, blue: 1
         self.board = [[-1 for _ in range(7)] for __ in range(6)]
         self.nMoves = 0
-        self.lastMove = None
+        self.lastMove = None, None, 1
+
+    def get(self, row, col):
+        if 0 <= row <= 5 and 0 <= col <= 6:
+            return self.board[row][col]
 
     def __getitem__(self, item):
         return self.board[item]
 
     def isGameOver(self):
-        directions = [(0, 1), (-1, 1), (-1, -1), (0, -1), (1, -1), (1, 0), (1, 1)]
-        for d in range(7):
-            print()
-        return True
+        r, c, p = self.lastMove
+        if r is None:
+            return
+        # count number of consecutive chess in 4 directions
+        dirCnt = [1 for _ in range(4)]
+        consecutive = [[True, True] for _ in range(4)]
+        for i in range(1, 4):  # i from 1 to 4
+            dirPos = [(r - i, c, r + i, c), (r, c - i, r, c + i),
+                      (r - i, c - i, r + i, c + i), (r - i, c + i, r + i, c - i)]
+            for d in range(4):  # check 4 directions
+                r1, c1, r2, c2 = dirPos[d]
+                if consecutive[d][0]:
+                    if self.get(r1, c1) == p:
+                        dirCnt[d] += 1
+                    else:
+                        consecutive[d][0] = False
+                if consecutive[d][1]:
+                    if self.get(r2, c2) == p:
+                        dirCnt[d] += 1
+                    else:
+                        consecutive[d][1] = False
+                if dirCnt[d] >= 4:
+                    return True
+        return False
 
     def move(self, col):
         if 0 <= col <= 6:
-            for i in range(-1, -7, -1):
-                if self.board[i][col] == -1:
-                    self.board[i][col] = self.nMoves % 2
+            for row in range(5, -1, -1):
+                if self.board[row][col] == -1:
+                    self.board[row][col] = self.nMoves % 2
+                    self.lastMove = row, col, self.nMoves % 2
                     self.nMoves += 1
-                    self.lastMove = col
                     return True
 
 
@@ -44,6 +68,7 @@ class Connect4GameController:
             self.view.update()
             if self.gameModel.isGameOver():
                 self.isNewGame = False
+                print('Game over')
 
     def newGame(self):
         self.isNewGame = True
